@@ -1,0 +1,15 @@
+- name: turntouch
+  mac: c2:51:f2:36:3f:ad
+  buttons:
+    north_press: echo "Hello North"
+    north_double: echo "Double North"
+    north_hold: echo "Hold North"
+    east_press: echo "Hello East"
+    east_double: echo "Double East"
+    east_hold: echo "Hold East"
+    south_press: echo "Hello South"
+    south_double: echo "Double South"
+    south_hold: echo "Hold South"
+    west_press: echo "Hello West"
+    west_double: echo "Double West"
+    west_hold: echo "Hold West"
