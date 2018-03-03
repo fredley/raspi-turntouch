@@ -13,7 +13,7 @@ sudo apt-get install python3-dbus
 
 Make sure your Turn Touch is disconnected *and unpaired* from any other devices, then run:
 
-```sudo gatt --discover```
+```sudo gattctl --discover```
 
 You should see the Turn Touch come up and see its Mac Address, which will look similar to c2:51:f2:36:3f:ad.
 
