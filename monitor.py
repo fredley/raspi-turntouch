@@ -68,7 +68,7 @@ class TurnTouch(gatt.Device):
 
         self.battery_status_characteristic.read_value()
         self.sched.add_job(self.battery_status_characteristic.read_value,
-                trigger='interval', minutes=1) #todo: reduce this
+                trigger='interval', minutes=60)
 
     def characteristic_enable_notifications_succeeded(self, characteristic):
         super().characteristic_enable_notifications_succeeded(characteristic)
