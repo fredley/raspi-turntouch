@@ -2,11 +2,17 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import datetime
 import importlib
 import gatt
+import logging
 import yaml
 import subprocess
 
-from controllers.hue_controller import HueController
-from controllers.nest_controller import NestController
+logging.basicConfig(filename='/var/log/turntouch.log',
+        filemode='a',
+        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+        datefmt='%H:%M:%S',
+        level=logging.INFO)
+
+logger = logging.getLogger('monitor')
 
 manager = gatt.DeviceManager(adapter_name='hci0')
 
@@ -44,11 +50,11 @@ class TurnTouch(gatt.Device):
 
     def connect_succeeded(self):
         super().connect_succeeded()
-        print("Connected!")
+        logger.info("Connected!")
 
     def connect_failed(self, error):
         super().connect_failed(error)
-        print("Connect failed with error {}".format(error))
+        logger.info("Connect failed with error {}".format(error))
 
     def services_resolved(self):
         super().services_resolved()
@@ -68,11 +74,11 @@ class TurnTouch(gatt.Device):
 
         self.battery_status_characteristic.read_value()
         self.sched.add_job(self.battery_status_characteristic.read_value,
-                trigger='interval', minutes=60)
+                trigger='interval', minutes=1) #todo: reduce this
 
     def characteristic_enable_notifications_succeeded(self, characteristic):
         super().characteristic_enable_notifications_succeeded(characteristic)
-        print("Connected to {}! Listening for button presses...".format(self.name))
+        logger.info("Connected to {}!".format(self.name))
 
     def characteristic_value_updated(self, characteristic, value):
         super().characteristic_value_updated(characteristic, value)
@@ -82,7 +88,7 @@ class TurnTouch(gatt.Device):
             if self.button_actions.get(key, False) and key not in self.battery_notifications_sent:
                 self.battery_notifications_sent.append(key)
                 self.perform('battery', str(percentage))
-            print('Battery status: {}%'.format(percentage))
+            logger.info('Battery status: {}%'.format(percentage))
             return
         if value == b'\xff\x00': #off
             return
@@ -100,7 +106,7 @@ class TurnTouch(gatt.Device):
         second_words = [s.split(' ')[1] for s in actions]
         self.button_presses = []
         if len(set(first_words)) != 1:
-            print("Too many presses too quickly")
+            logger.info("Too many presses too quickly")
             return
         direction = first_words[0]
         if 'Double' in second_words:
@@ -111,27 +117,27 @@ class TurnTouch(gatt.Device):
             self.perform(direction, 'Press')
 
     def perform(self, direction, action):
-        print("Performing {} {}".format(direction, action))
+        logger.info("Performing {} {}".format(direction, action))
         action = self.button_actions.get("{}_{}".format(direction.lower(), action.lower()), {'type': 'none'})
         if action['type'] == 'none':
             return
         elif action['type'] in self.controllers:
             self.controllers[action['type']].perform(action)
         else:
-            print("No controller found for action {}".format(action['type']))
+            logger.info("No controller found for action {}".format(action['type']))
 
 if __name__ == '__main__':
     try:
         with open('config.yml') as f:
             config = yaml.load(f)
-            print('Config loaded: {}'.format(config))
+            logger.info('Config loaded: {}'.format(config))
     except Exception as e:
         config = []
-        print("Error loading config: {}".format(e))
+        logger.info("Error loading config: {}".format(e))
     for c in config:
         controllers = {}
         for t in set([b['type'] for _, b in c['buttons'].items()]):
-            print("Found command of type {}, trying to load controller...".format(t))
+            logger.info("Found command of type {}, trying to load controller".format(t))
             m = importlib.import_module('controllers.{}_controller'.format(t))
             controller = [k for k in m.__dict__.keys() if 'Controller' in k][0]
             controllers[t] = getattr(m, controller)()
@@ -142,6 +148,6 @@ if __name__ == '__main__':
                 name=c['name'],
                 controllers=controllers
         )
-        print("Trying to connect to {} at {}...".format(c['name'], c['mac']))
+        logger.info("Trying to connect to {} at {}...".format(c['name'], c['mac']))
         device.connect()
     manager.run()

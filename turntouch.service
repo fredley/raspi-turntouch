@@ -1,0 +1,12 @@
+[Unit]
+Description=TurnTouch Pi Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/pi/raspi-turntouch
+ExecStart=python3 /home/pi/raspi-turntouch/monitor.py
+
+[Install]
+WantedBy=multi-user.target

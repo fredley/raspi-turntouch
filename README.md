@@ -81,10 +81,25 @@ Currently, only nest thermostats are supported, and again no room support.
 The battery status is checked every hour. If you would like something to happen when it falls below a certain value, use the following:
 
 ```yaml
-battery_10: # will trigger when batter falls to 10%
+battery_10: # will trigger when battery level falls to 10%
     type: bash
     command: email_me.sh
 ```
+
+## Running on boot
+
+You probably want `raspi-turntouch` to run on boot. To do this, make sure the paths in `turntouch.service` are correct, then:
+
+```bash
+sudo cp turntouch.service /lib/systemd/system/turntouch.service
+sudo systemctl daemon-reload
+sudo systemctl start turntouch
+sudo systemctl enable turntouch
+```
+
+You can see log output at `/var/log/turntouch.log`.
+
+Make sure you have set up credentials for services such as Nest and Hue before doing this!
 
 ## Writing your own controller
 

@@ -1,12 +1,15 @@
+import logging
 import subprocess
+
+logger = logging.getLogger('bash_controller')
 
 
 class BashController:
 
     def perform(self, action):
         try:
-            print(subprocess.check_output(action['command'],
+            logger.log(subprocess.check_output(action['command'],
                                           shell=True
             ).decode('utf-8').strip())
         except Exception as e:
-            print("Something went wrong: {}".format(e))
+            logger.log("Something went wrong: {}".format(e))
