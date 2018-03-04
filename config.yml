@@ -37,3 +37,6 @@
     west_hold:
       type: bash
       command: echo "Hold West"
+    battery_10:
+      type: bash
+      command: echo "Battery Low!"

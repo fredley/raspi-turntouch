@@ -4,8 +4,8 @@ import gatt
 import yaml
 import subprocess
 
-from hue import HueController
-
+from controllers.hue_controller import HueController
+from controllers.nest_controller import NestController
 
 manager = gatt.DeviceManager(adapter_name='hci0')
 
@@ -30,14 +30,16 @@ class TurnTouch(gatt.Device):
 
     button_presses = []
 
-    def __init__(self, mac_address, manager, buttons, name, hue_controller):
+    battery_notifications_sent = []
+
+    def __init__(self, mac_address, manager, buttons, name, controllers):
         super().__init__(mac_address, manager)
         self.sched = BackgroundScheduler()
         self.sched.start()
         self.button_actions = buttons
         self.listening = False
         self.name = name
-        self.hue_controller = hue_controller
+        self.controllers = controllers
 
     def connect_succeeded(self):
         super().connect_succeeded()
@@ -52,10 +54,20 @@ class TurnTouch(gatt.Device):
         button_status_service = next(s for s in self.services
                 if s.uuid == '99c31523-dc4f-41b1-bb04-4e4deb81fadd')
 
-        button_status_characteristic = next(c for c in button_status_service.characteristics
+        self.button_status_characteristic = next(c for c in button_status_service.characteristics
                 if c.uuid == '99c31525-dc4f-41b1-bb04-4e4deb81fadd')
 
-        button_status_characteristic.enable_notifications()
+        self.button_status_characteristic.enable_notifications()
+
+        battery_status_service = next(s for s in self.services
+                if s.uuid.startswith('0000180f'))
+
+        self.battery_status_characteristic = next(c for c in battery_status_service.characteristics
+                if c.uuid.startswith('00002a19'))
+
+        self.battery_status_characteristic.read_value()
+        self.sched.add_job(self.battery_status_characteristic.read_value,
+                trigger='interval', minutes=1) #todo: reduce this
 
     def characteristic_enable_notifications_succeeded(self, characteristic):
         super().characteristic_enable_notifications_succeeded(characteristic)
@@ -63,6 +75,14 @@ class TurnTouch(gatt.Device):
 
     def characteristic_value_updated(self, characteristic, value):
         super().characteristic_value_updated(characteristic, value)
+        if characteristic == self.battery_status_characteristic:
+            percentage = int(int.from_bytes(value, byteorder='big') * 100/ 255)
+            key = 'battery_{}'.format(percentage)
+            if self.button_actions.get(key, False) and key not in self.battery_notifications_sent:
+                self.battery_notifications_sent.append(key)
+                self.perform('battery', str(percentage))
+            print('Battery status: {}%'.format(percentage))
+            return
         if value == b'\xff\x00': #off
             return
         self.button_presses.append(value)
@@ -88,21 +108,23 @@ class TurnTouch(gatt.Device):
             self.perform(direction, 'Hold')
         else:
             self.perform(direction, 'Press')
-    
+
     def perform(self, direction, action):
         print("Performing {} {}".format(direction, action))
         action = self.button_actions.get("{}_{}".format(direction.lower(), action.lower()), {'type': 'none'})
-        if action['type'] == 'bash':
+        if action['type'] == 'none':
+            return
+        elif action['type'] == 'bash':
             try:
                 print(
                         subprocess.check_output(action['command'], shell=True
                 ).decode('utf-8').strip())
             except Exception as e:
                 print("Something went wrong: {}".format(e))
-        elif action['type'] == 'hue':
-            self.hue_controller.set_light(str(action['id']),
-                    bri=action['brightness'],
-                    hue=action['hue'])
+        elif action['type'] in self.controllers:
+            self.controllers[action['type']].perform(action)
+        else:
+            print("No controller found for action {}".format(action['type']))
 
 if __name__ == '__main__':
     try:
@@ -114,17 +136,21 @@ if __name__ == '__main__':
         print("Error loading config: {}".format(e))
     for c in config:
         types = [b['type'] for _, b in c['buttons'].items()]
+        controllers = {}
         if 'hue' in types:
             print("Loading Hue...")
-            hue_controller = HueController()
+            controllers['hue'] = HueController()
+        if 'nest' in types:
+            print("Loading Nest...")
+            controllers['nest'] = NestController()
         else:
             hue_controller = None
         device = TurnTouch(
-                mac_address=c['mac'], 
-                manager=manager, 
-                buttons=c['buttons'], 
-                name=c['name'], 
-                hue_controller=hue_controller
+                mac_address=c['mac'],
+                manager=manager,
+                buttons=c['buttons'],
+                name=c['name'],
+                controllers=controllers
         )
         print("Trying to connect to {} at {}...".format(c['name'], c['mac']))
         device.connect()

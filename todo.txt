@@ -1,3 +1,4 @@
 * Remaining Button Press types, esp. 4-button push.
 * Modal behaviour mode similar to Mac/iOS apps.
 * Provide instructions for setting up a service to run at boot time.
+* More controllers
