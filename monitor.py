@@ -4,6 +4,8 @@ import gatt
 import yaml
 import subprocess
 
+from hue import HueController
+
 
 manager = gatt.DeviceManager(adapter_name='hci0')
 
@@ -28,13 +30,14 @@ class TurnTouch(gatt.Device):
 
     button_presses = []
 
-    def __init__(self, mac_address, manager, buttons, name):
+    def __init__(self, mac_address, manager, buttons, name, hue_controller):
         super().__init__(mac_address, manager)
         self.sched = BackgroundScheduler()
         self.sched.start()
         self.button_actions = buttons
         self.listening = False
         self.name = name
+        self.hue_controller = hue_controller
 
     def connect_succeeded(self):
         super().connect_succeeded()
@@ -85,18 +88,21 @@ class TurnTouch(gatt.Device):
             self.perform(direction, 'Hold')
         else:
             self.perform(direction, 'Press')
-
+    
     def perform(self, direction, action):
         print("Performing {} {}".format(direction, action))
-        try:
-            print(subprocess.check_output(
-                self.button_actions.get(
-                    "{}_{}".format(direction.lower(), action.lower()), 'echo "No action specified"'),
-                shell=True
-            ).decode('utf-8').strip())
-        except Exception as e:
-            print("Something went wrong: {}".format(e))
-
+        action = self.button_actions.get("{}_{}".format(direction.lower(), action.lower()), {'type': 'none'})
+        if action['type'] == 'bash':
+            try:
+                print(
+                        subprocess.check_output(action['command'], shell=True
+                ).decode('utf-8').strip())
+            except Exception as e:
+                print("Something went wrong: {}".format(e))
+        elif action['type'] == 'hue':
+            self.hue_controller.set_light(str(action['id']),
+                    bri=action['brightness'],
+                    hue=action['hue'])
 
 if __name__ == '__main__':
     try:
@@ -107,7 +113,19 @@ if __name__ == '__main__':
         config = []
         print("Error loading config: {}".format(e))
     for c in config:
-        device = TurnTouch(mac_address=c['mac'], manager=manager, buttons=c['buttons'], name=c['name'])
+        types = [b['type'] for _, b in c['buttons'].items()]
+        if 'hue' in types:
+            print("Loading Hue...")
+            hue_controller = HueController()
+        else:
+            hue_controller = None
+        device = TurnTouch(
+                mac_address=c['mac'], 
+                manager=manager, 
+                buttons=c['buttons'], 
+                name=c['name'], 
+                hue_controller=hue_controller
+        )
         print("Trying to connect to {} at {}...".format(c['name'], c['mac']))
         device.connect()
     manager.run()

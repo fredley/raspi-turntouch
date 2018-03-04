@@ -1,15 +1,39 @@
 - name: turntouch
   mac: c2:51:f2:36:3f:ad
   buttons:
-    north_press: echo "Hello North"
-    north_double: echo "Double North"
-    north_hold: echo "Hold North"
-    east_press: echo "Hello East"
-    east_double: echo "Double East"
-    east_hold: echo "Hold East"
-    south_press: echo "Hello South"
-    south_double: echo "Double South"
-    south_hold: echo "Hold South"
-    west_press: echo "Hello West"
-    west_double: echo "Double West"
-    west_hold: echo "Hold West"
+    north_press:
+      type: bash
+      command: echo "Hello North"
+    north_double:
+      type: bash
+      command: echo "Double North"
+    north_hold:
+      type: bash
+      command: echo "Hold North"
+    east_press:
+      type: bash
+      command: echo "Hello East"
+    east_double:
+      type: bash
+      command: echo "Double East"
+    east_hold:
+      type: bash
+      command: echo "Hold East"
+    south_press:
+      type: bash
+      command: echo "Hello South"
+    south_double:
+      type: bash
+      command: echo "Double South"
+    south_hold:
+      type: bash
+      command: echo "Hold South"
+    west_press:
+      type: bash
+      command: echo "Hello West"
+    west_double:
+      type: bash
+      command: echo "Double West"
+    west_hold:
+      type: bash
+      command: echo "Hold West"
