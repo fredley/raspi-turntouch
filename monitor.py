@@ -1,5 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 import datetime
+import importlib
 import gatt
 import yaml
 import subprocess
@@ -71,7 +72,7 @@ class TurnTouch(gatt.Device):
 
     def characteristic_enable_notifications_succeeded(self, characteristic):
         super().characteristic_enable_notifications_succeeded(characteristic)
-        print("Connected to {}!".format(self.name))
+        print("Connected to {}! Listening for button presses...".format(self.name))
 
     def characteristic_value_updated(self, characteristic, value):
         super().characteristic_value_updated(characteristic, value)
@@ -114,13 +115,6 @@ class TurnTouch(gatt.Device):
         action = self.button_actions.get("{}_{}".format(direction.lower(), action.lower()), {'type': 'none'})
         if action['type'] == 'none':
             return
-        elif action['type'] == 'bash':
-            try:
-                print(
-                        subprocess.check_output(action['command'], shell=True
-                ).decode('utf-8').strip())
-            except Exception as e:
-                print("Something went wrong: {}".format(e))
         elif action['type'] in self.controllers:
             self.controllers[action['type']].perform(action)
         else:
@@ -135,16 +129,12 @@ if __name__ == '__main__':
         config = []
         print("Error loading config: {}".format(e))
     for c in config:
-        types = [b['type'] for _, b in c['buttons'].items()]
         controllers = {}
-        if 'hue' in types:
-            print("Loading Hue...")
-            controllers['hue'] = HueController()
-        if 'nest' in types:
-            print("Loading Nest...")
-            controllers['nest'] = NestController()
-        else:
-            hue_controller = None
+        for t in set([b['type'] for _, b in c['buttons'].items()]):
+            print("Found command of type {}, trying to load controller...".format(t))
+            m = importlib.import_module('controllers.{}_controller'.format(t))
+            controller = [k for k in m.__dict__.keys() if 'Controller' in k][0]
+            controllers[t] = getattr(m, controller)()
         device = TurnTouch(
                 mac_address=c['mac'],
                 manager=manager,

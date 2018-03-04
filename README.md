@@ -1,5 +1,7 @@
 # Turn Touch Raspberry Pi Client
 
+An extendible client for using a [Turn Touch](https://shop.turntouch.com/) with a Raspberry Pi. Comes with Hue, Nest and custom script support out of the box.
+
 ## Installation
 
 This code was written and tested with a Raspberry Pi Zero W.
@@ -83,3 +85,25 @@ battery_10: # will trigger when batter falls to 10%
     type: bash
     command: email_me.sh
 ```
+
+## Writing your own controller
+
+* Decide on a name for your controller. In this example it is `custom`. This key must be used in the filename and `config.yml`
+* Create `controllers/custom_controller.py`
+* Create a class called, e.b. `CustomController`. It *must* contain the word 'Controller'.
+* Implement `perform(self, action)`, where action is a dict as passed from `config.yml`
+* In `config.yml`, simply address your controller as follows:
+
+```yaml
+north_press:
+    type: custom
+    arg1: Whatever you want
+    another_arg:
+        - can
+        - even
+        - be
+        - a
+        - list
+```
+
+If your controller is used for a common action, service or product, consider submitting a pull request!
