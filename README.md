@@ -6,7 +6,7 @@ This code was written and tested with a Raspberry Pi Zero W.
 
 Assuming python3 and pip3 are installed, install the following **as root**. Do not use a virtualenv!
 
-```
+```bash
 sudo pip3 install gatt pyyaml apscheduler qhue
 sudo apt-get install python3-dbus
 ```
@@ -35,7 +35,8 @@ In order to connect to your Hue Bridge, it's easest to run:
 This will prompt you to press the button on your bridge, then list out your lights, by id, type and room.
 You can then configure button presses in `config.yml` as follows:
 
-```north_double:
+```yaml
+north_double:
     type: hue
     id: 1 # From output of python3 hue.py
     brightness: # 1-254
