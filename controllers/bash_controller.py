@@ -1,15 +1,14 @@
 import logging
 import subprocess
 
-logger = logging.getLogger('bash_controller')
+from .base_controller import BaseController
 
-
-class BashController:
+class BashController(BaseController):
 
     def perform(self, action):
         try:
-            logger.log(subprocess.check_output(action['command'],
+            self.log(subprocess.check_output(action['command'],
                                           shell=True
             ).decode('utf-8').strip())
         except Exception as e:
-            logger.log("Something went wrong: {}".format(e))
+            self.log("Something went wrong: {}".format(e), logging.ERROR)
