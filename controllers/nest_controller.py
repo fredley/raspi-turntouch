@@ -6,8 +6,8 @@ import os
 # You must register for a Nest Developer account to obtain these
 # Instructions are at https://github.com/jkoelker/python-nest
 
-client_id = None
-client_secret = None
+client_id = os.environ.get("NEST_CLIENT_ID")
+client_secret = os.environ.get("NEST_CLIENT_SECRET")
 
 
 logger = logging.getLogger('nest_controller')
