@@ -57,7 +57,7 @@ class HueController(BaseController):
         self.bridge.groups[id].state({'scene': scene_id})
 
     def perform(self, action):
-        kwargs = {k: v for k, v in action.items() if k not in ['action', 'id']}
+        kwargs = {k: v for k, v in action.items() if k not in ['action', 'id', 'type']}
         id, act = action['id'], action['action']
         if act == 'set_light':
             self.set_light(id, **kwargs)
