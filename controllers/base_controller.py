@@ -10,7 +10,7 @@ class BaseController:
       self.print_log = True
     else:
       self.logger = logging.getLogger(self.get_class_name())
-    self.init()
+    self.init(*args, **kwargs)
 
   @classmethod
   def get_class_name(cls):
@@ -27,3 +27,10 @@ class BaseController:
 
   def perform(self, action):
     print("Unimplemented!")
+
+  @classmethod
+  def help(cls):
+    return "There is no help for this module :-("
+
+  def print_all(self):
+    pass

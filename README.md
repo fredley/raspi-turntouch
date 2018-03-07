@@ -28,54 +28,21 @@ Launch the listener with:
 It should connect, and once it has you should be able to press buttons on your Turn Touch and see the output of your commands.
 
 
-## Hue Controller
+## Controllers
 
-In order to connect to your Hue Bridge, it's easest to run setup separately first:
+To see what controllers are available, run
 
-```python3 controllers/hue_controller.py```
+```sudo python3 monitor.py -l```
 
-This will prompt you to press the button on your bridge, then list out your lights, by id, type and room.
-You can then configure button presses in `config.yml` as follows:
+To see help for setting up commands for a controller, run, e.g.
 
-```yaml
-north_double:
-    type: hue
-    action: set_light
-    id: 1 # From output of python3 hue.py
-    bri: # 1-254
-    hue: 9000 # From 0 to 65535, hardware dependent
-```
+```sudo python3 monitor.py -c hue```
 
-Setting scenes, or rooms is not possible, yet!
+and then to set them up, run, e.g.
 
-## Nest Controller
+```sudo python3 monitor.py -s hue```
 
-In order to connect to your Nest, you need to register for a Nest Developer account, and get a product ID and secret, which you must insert into `controllers/nest_controller.py` manually.
-
-Then, you can authenticate yourself by running:
-
-```python3 controllers/nest_controller.py```
-
-This will give you a URL, which will give you a PIN which you will be prompted for. If successful, the controller will then print out all homes and devices. You can then configure your remote using the following:
-
-```yaml
-east_press:
-    type: nest
-    structure: My Home # As in listed values. Can be omitted if only one structure
-    device: Kitchen # As in listed values. Can be omitted if only one device
-    action: adjust_temp
-    temperature: 18 # will be ºF or ºC as per the settings on your nest. Just put in the right number.
-east_double:
-    type: nest
-    action: adjust_temp
-    direction: up # will add 1º to the target temp, or use 'down' for -1º
-east_hold:
-    type: nest
-    action: set_away
-    away: true # Sets your device to away, or use false to set home
-```
-
-Currently, only nest thermostats are supported, and again no room support.
+Most controllers that connect to a device will need some kind of setup. Controllers will often print out helpful information (such as available bulbs, thermostats) after setup.
 
 ## Battery Status
 
@@ -104,10 +71,10 @@ Make sure you have set up credentials for services such as Nest and Hue before d
 
 ## Writing your own controller
 
-* Decide on a name for your controller. In this example it is `custom`. This key must be used in the filename and `config.yml`
+* Decide on a name for your controller. In this example it is `custom`. This key must be used in the filename and `config.yml` entries.
 * Create `controllers/custom_controller.py`
-* Create a class called, e.b. `CustomController`. It *must* contain the word 'Controller'.
-* Implement `perform(self, action)`, where action is a dict as passed from `config.yml`
+* Create a class called, e.b. `CustomController`. It *must* inherit from `BaseController`.
+* Implement `perform(self, action)`, where action is a dict as passed from `config.yml`, and `init` for setup.
 * In `config.yml`, simply address your controller as follows:
 
 ```yaml

@@ -8,13 +8,15 @@ from .base_controller import BaseController
 # You must register for a Nest Developer account to obtain these
 # Instructions are at https://github.com/jkoelker/python-nest
 
+# Remember to set them in turntouch.service!
+
 client_id = os.environ.get("NEST_CLIENT_ID")
 client_secret = os.environ.get("NEST_CLIENT_SECRET")
 
 
 class NestController(BaseController):
 
-    def init(self):
+    def init(self, *args, **kwargs):
         if not client_secret or not client_id:
             self.log("Nest Developer Account required: see https://console.developers.nest.com/developer/new", logging.ERROR)
             self.log("Update this file with client_id and client_secret to connect to Nest", logging.ERROR)
@@ -67,7 +69,24 @@ class NestController(BaseController):
             device.target = device.target + (1 if action['direction'] == 'up' else -1)
             self.log("Set temperature to {}".format(device.target))
 
+    @classmethod
+    def help(cls):
+      return """
+Hue Module - Control Nest Thermostats
 
-if __name__ == '__main__':
-    n = NestController(print=True)
-    n.print_all()
+Usage:
+
+north_press:
+  type: nest
+  action: set_temp
+  structure: Home     # Run setup to see names. Optional if only one structure
+  device: Kitchen     # Run setup to see names. Optional if only one device
+  temperature: 21     # In ºF or ºC, as your thermostat is set
+
+north_press:
+  type: nest
+  action: adjust_temp
+  structure: Home     # Run setup to see names. Optional if only one structure
+  device: Kitchen     # Run setup to see names. Optional if only one device
+  direction: up       # or down
+"""
