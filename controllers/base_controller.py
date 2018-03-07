@@ -22,4 +22,4 @@ class BaseController:
       self.logger.log(level, msg)
 
   def perform(self, action):
-    print ("Unimplemented!")
+    print("Unimplemented!")
