@@ -138,6 +138,7 @@ class TurnTouch(gatt.Device):
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'print':
         print_log = True
+        print("Printing not logging!")
 
     try:
         with open('config.yml') as f:
@@ -152,7 +153,7 @@ if __name__ == '__main__':
             log("Found command of type {}, trying to load controller".format(t))
             m = importlib.import_module('controllers.{}_controller'.format(t))
             controller = [k for k in m.__dict__.keys() if 'Controller' in k][0]
-            controllers[t] = getattr(m, controller)()
+            controllers[t] = getattr(m, controller)(print=print_log)
         device = TurnTouch(
                 mac_address=c['mac'],
                 manager=manager,

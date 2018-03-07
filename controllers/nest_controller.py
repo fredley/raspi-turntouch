@@ -14,7 +14,8 @@ client_secret = os.environ.get("NEST_CLIENT_SECRET")
 
 class NestController(BaseController):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         if not client_secret or not client_id:
             self.log("Nest Developer Account required: see https://console.developers.nest.com/developer/new", logging.ERROR)
             self.log("Update this file with client_id and client_secret to connect to Nest", logging.ERROR)
