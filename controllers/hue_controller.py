@@ -8,7 +8,6 @@ from .base_controller import BaseController
 class HueController(BaseController):
 
     def init(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         try:
             with open('.hueusername') as f:
                 bridge_data = json.loads(f.read())
