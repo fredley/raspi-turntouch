@@ -68,7 +68,36 @@ class HueController(BaseController):
         elif act == 'set_scene':
             self.set_scene(id, **kwargs)
 
+    @classmethod
+    def help(cls):
+      return """
+Hue Module - Control Hue Lights
 
-if __name__ == '__main__':
-    c = HueController(print=True)
-    c.print_all()
+Usage:
+
+north_press:
+  type: hue
+  action: set_light
+  id: 1                      # See below for IDs
+  bri: 254                   # From 1 to 254
+  hue: 9000                  # From 0 to 65535, hardware dependent
+
+north_press:
+  type: hue
+  action: set_room
+  id: 1                      # See below for IDs
+  bri: 254                   # From 1 to 254
+  hue: 9000                  # From 0 to 65535, hardware dependent
+
+north_press:
+  type: hue
+  action: adjust_brightness
+  id: 1                      # Light ID. See below for IDs
+  direction: up              # or down
+
+north_press:
+  type: hue
+  action: set_scene
+  id: 1                      # Room ID. See below for IDs
+  scene: Scene Name          # see below
+"""

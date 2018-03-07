@@ -5,6 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=root
+Environment="NEST_CLIENT_ID="
+Environment="NEST_CLIENT_SECRET="
 WorkingDirectory=/home/pi/raspi-turntouch
 ExecStart=/usr/bin/python3 /home/pi/raspi-turntouch/monitor.py
 

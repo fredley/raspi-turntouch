@@ -1,11 +1,12 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+import argparse
 import datetime
 import importlib
 import gatt
 import logging
+import os
 import yaml
 import subprocess
-import sys
 
 from controllers.base_controller import BaseController
 
@@ -17,7 +18,7 @@ logging.basicConfig(filename='/var/log/turntouch.log',
 
 logger = logging.getLogger('monitor')
 
-manager = gatt.DeviceManager(adapter_name='hci0')
+# manager = gatt.DeviceManager(adapter_name='hci0')
 
 print_log = False
 
@@ -137,32 +138,74 @@ class TurnTouch(gatt.Device):
         else:
             log("No controller found for action {}".format(action['type']))
 
-if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'print':
-        print_log = True
-        print("Printing not logging!")
 
-    try:
-        with open('config.yml') as f:
-            config = yaml.load(f)
-            log('Config loaded: {}'.format(config))
-    except Exception as e:
-        config = []
-        log("Error loading config: {}".format(e))
-    for c in config:
-        controllers = {}
-        for t in set([b['type'] for _, b in c['buttons'].items()]):
-            log("Found command of type {}, trying to load controller".format(t))
-            m = importlib.import_module('controllers.{}_controller'.format(t))
+def get_controllers():
+    res = []
+    for f in os.listdir("./controllers"):
+        if 'controller' in f and f != 'base_controller.py':
+            m = importlib.import_module('controllers.{}'.format(os.path.splitext(f)[0]))
             controller = [c for _, c in m.__dict__.items() if (type(c) == type) and c != BaseController and issubclass(c, BaseController)][0]
-            controllers[t] = controller(print=print_log)
-        device = TurnTouch(
-                mac_address=c['mac'],
-                manager=manager,
-                buttons=c['buttons'],
-                name=c['name'],
-                controllers=controllers
-        )
-        log("Trying to connect to {} at {}...".format(c['name'], c['mac']))
-        device.connect()
-    manager.run()
+            res.append((f.split('_')[0], controller))
+    return res
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--print", help="print output, rather than logging",
+                    action="store_true")
+    parser.add_argument("-l", "--list", help="list available controllers",
+                    action="store_true")
+    parser.add_argument("-c", "--controller", type=str, help="show help for a controller")
+    parser.add_argument("-s", "--setup", type=str, help="run setup for a controller")
+    args = parser.parse_args()
+
+    if args.print:
+        print_log = True
+
+    if args.list:
+        print("Controllers:")
+        for controller in get_controllers():
+            print(" - [{}]: {}".format(controller[0], controller[1].get_class_name()))
+    elif args.controller:
+        controllers = get_controllers()
+        try:
+            controller = [m for m in controllers if m[0] == args.controller][0]
+            print(controller[1].help())
+        except:
+            print("A controller called {} was not found. The available controllers are:".format(args.controller))
+            for controller in controllers:
+                print(" - {}".format(controller[0]))
+    elif args.setup:
+        controllers = get_controllers()
+        try:
+            controller = [m for m in controllers if m[0] == args.setup][0]
+        except:
+            print("A controller called {} was not found. The available controllers are:".format(args.controller))
+            for controller in controllers:
+                print(" - {}".format(controller[0]))
+        controller[1](print=True).print_all()
+    else:
+        try:
+            with open('config.yml') as f:
+                config = yaml.load(f)
+                log('Config loaded: {}'.format(config))
+        except Exception as e:
+            config = []
+            log("Error loading config: {}".format(e))
+        for c in config:
+            controllers = {}
+            for t in set([b['type'] for _, b in c['buttons'].items()]):
+                log("Found command of type {}, trying to load controller".format(t))
+                m = importlib.import_module('controllers.{}_controller'.format(t))
+                controller = [c for _, c in m.__dict__.items() if (type(c) == type) and c != BaseController and issubclass(c, BaseController)][0]
+                controllers[t] = controller(print=print_log)
+            device = TurnTouch(
+                    mac_address=c['mac'],
+                    manager=manager,
+                    buttons=c['buttons'],
+                    name=c['name'],
+                    controllers=controllers
+            )
+            log("Trying to connect to {} at {}...".format(c['name'], c['mac']))
+            device.connect()
+        manager.run()
