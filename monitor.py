@@ -152,8 +152,8 @@ if __name__ == '__main__':
         for t in set([b['type'] for _, b in c['buttons'].items()]):
             log("Found command of type {}, trying to load controller".format(t))
             m = importlib.import_module('controllers.{}_controller'.format(t))
-            controller = [k for k in m.__dict__.keys() if 'Controller' in k][0]
-            controllers[t] = getattr(m, controller)(print=print_log)
+            controller = [c for _, c in m.__dict__.items() if (type(c) == type) and c != BaseController and issubclass(c, BaseController)][0]
+            controllers[t] = controller(print=print_log)
         device = TurnTouch(
                 mac_address=c['mac'],
                 manager=manager,
