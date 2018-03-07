@@ -1,4 +1,5 @@
 import json
+import logging
 from qhue import Bridge, create_new_username
 import requests
 import sys
@@ -12,7 +13,7 @@ class HueController(BaseController):
             with open('.hueusername') as f:
                 bridge_data = json.loads(f.read())
         except:
-            logger.warn("Bridge not authorised, need to press the button!")
+            self.log("Bridge not authorised, need to press the button!", logging.WARN)
             bridge_data = json.loads(
                 requests.get('https://www.meethue.com/api/nupnp').text)[0]
             bridge_data['username'] = create_new_username(
