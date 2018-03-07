@@ -7,6 +7,8 @@ import yaml
 import subprocess
 import sys
 
+from controllers.base_controller import BaseController
+
 logging.basicConfig(filename='/var/log/turntouch.log',
         filemode='a',
         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
