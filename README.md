@@ -40,8 +40,9 @@ You can then configure button presses in `config.yml` as follows:
 ```yaml
 north_double:
     type: hue
+    action: set_light
     id: 1 # From output of python3 hue.py
-    brightness: # 1-254
+    bri: # 1-254
     hue: 9000 # From 0 to 65535, hardware dependent
 ```
 
