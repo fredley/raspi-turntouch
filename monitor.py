@@ -19,7 +19,7 @@ manager = gatt.DeviceManager(adapter_name='hci0')
 
 print_log = False
 
-def log(self, msg, level=logging.INFO):
+def log(msg, level=logging.INFO):
     if print_log:
         print(msg)
     else:
