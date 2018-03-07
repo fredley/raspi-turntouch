@@ -9,11 +9,15 @@ class BaseController:
     if kwargs.get('print'):
       self.print_log = True
     else:
-      self.logger = logging.getLogger(self.__class__.__name__)
+      self.logger = logging.getLogger(self.get_class_name())
     self.init()
 
+  @classmethod
+  def get_class_name(cls):
+    return cls.__name__
+
   def init(self):
-    self.log("Initialised {}".format(self.__class__.__name__))
+    self.log("Initialised {}".format(self.get_class_name()))
 
   def log(self, msg, level=logging.INFO):
     if self.print_log:
