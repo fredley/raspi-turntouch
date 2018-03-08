@@ -18,7 +18,7 @@ logging.basicConfig(filename='/var/log/turntouch.log',
 
 logger = logging.getLogger('monitor')
 
-# manager = gatt.DeviceManager(adapter_name='hci0')
+manager = gatt.DeviceManager(adapter_name='hci0')
 
 print_log = False
 
