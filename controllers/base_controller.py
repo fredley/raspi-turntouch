@@ -16,7 +16,7 @@ class BaseController:
   def get_class_name(cls):
     return cls.__name__
 
-  def init(self):
+  def init(self, *args, **kwargs):
     self.log("Initialised {}".format(self.get_class_name()))
 
   def log(self, msg, level=logging.INFO):
