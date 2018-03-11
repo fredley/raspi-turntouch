@@ -51,6 +51,8 @@ class TurnTouch(gatt.Device):
 
     battery_notifications_sent = []
 
+    connected = False
+
     def __init__(self, mac_address, manager, buttons, name, controllers):
         super().__init__(mac_address, manager)
         self.sched = BackgroundScheduler()
@@ -60,8 +62,17 @@ class TurnTouch(gatt.Device):
         self.name = name
         self.controllers = controllers
 
+    def disconnect_succeeded(self):
+        super().disconnect_succeeded()
+        log("Disconnected, trying to reconnect...")
+        self.connected = False
+        while not self.connected:
+            self.connect()
+            time.sleep(10)
+
     def connect_succeeded(self):
         super().connect_succeeded()
+        self.connected = True
         log("Connected!")
 
     def connect_failed(self, error):
