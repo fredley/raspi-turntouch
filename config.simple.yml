@@ -1,0 +1,13 @@
+- name: turntouch
+  mac: YOUR:MAC:ID:HERE
+  default_action: echo
+  buttons:
+    north_press:
+      type: echo
+      command: echo "Hello North"
+    north_double:
+      type: bash
+      command: echo "Double North"
+    battery_10:
+      type: bash
+      command: echo "Battery Low!"
