@@ -51,7 +51,7 @@ class TurnTouch(gatt.Device):
 
     battery_notifications_sent = []
 
-    def __init__(self, mac_address, manager, buttons, name, controllers):
+    def __init__(self, mac_address, manager, buttons, name, controllers, default_action=None):
         super().__init__(mac_address, manager)
         self.sched = BackgroundScheduler()
         self.sched.start()
@@ -59,6 +59,7 @@ class TurnTouch(gatt.Device):
         self.listening = False
         self.name = name
         self.controllers = controllers
+        self.default_action = default_action
 
     def connect_succeeded(self):
         super().connect_succeeded()
@@ -131,10 +132,14 @@ class TurnTouch(gatt.Device):
     def perform(self, direction, action):
         log("Performing {} {}".format(direction, action))
         action = self.button_actions.get("{}_{}".format(direction.lower(), action.lower()), {'type': 'none'})
-        if action['type'] == 'none':
-            return
-        elif action['type'] in self.controllers:
+        log("Action: {}".format(action))
+
+        if action['type'] in self.controllers:
             self.controllers[action['type']].perform(action)
+        elif self.default_action:
+            self.controllers[self.default_action].perform(action)
+        elif action['type'] == 'none':
+            return
         else:
             log("No controller found for action {}".format(action['type']))
 
@@ -204,7 +209,8 @@ if __name__ == '__main__':
                     manager=manager,
                     buttons=c['buttons'],
                     name=c['name'],
-                    controllers=controllers
+                    controllers=controllers,
+                    default_action=c.get('default_action')
             )
             log("Trying to connect to {} at {}...".format(c['name'], c['mac']))
             device.connect()
