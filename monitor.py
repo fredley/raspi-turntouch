@@ -5,8 +5,8 @@ import importlib
 import gatt
 import logging
 import os
+import traceback
 import yaml
-import subprocess
 
 from controllers.base_controller import BaseController
 
@@ -129,14 +129,17 @@ class TurnTouch(gatt.Device):
         action = self.button_actions.get("{}_{}".format(direction.lower(), action.lower()), {'type': 'none'})
         log("Action: {}".format(action))
 
-        if action['type'] in self.controllers:
-            self.controllers[action['type']].perform(action)
-        elif self.default_action:
-            self.controllers[self.default_action].perform(action)
-        elif action['type'] == 'none':
-            return
-        else:
-            log("No controller found for action {}".format(action['type']))
+        try:
+            if action['type'] in self.controllers:
+                self.controllers[action['type']].perform(action)
+            elif self.default_action:
+                self.controllers[self.default_action].perform(action)
+            elif action['type'] == 'none':
+                return
+            else:
+                log("No controller found for action {}".format(action['type']))
+        except Exception as ex:
+            log("{}\ncaught exception from controller action. we'll ignore it and continue.".format(traceback.format_exc()))
 
 
 def get_controllers():
