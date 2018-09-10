@@ -10,11 +10,6 @@ import yaml
 
 from controllers.base_controller import BaseController
 
-logging.basicConfig(filename='/var/log/turntouch.log',
-        filemode='a',
-        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-        datefmt='%H:%M:%S',
-        level=logging.INFO)
 
 logger = logging.getLogger('monitor')
 
@@ -169,6 +164,12 @@ if __name__ == '__main__':
 
     if args.print:
         print_log = True
+    else:
+        logging.basicConfig(filename='/var/log/turntouch.log',
+            filemode='a',
+            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+            datefmt='%H:%M:%S',
+            level=logging.INFO)
 
     if args.list:
         print("Controllers:")
@@ -218,3 +219,4 @@ if __name__ == '__main__':
             log("Trying to connect to {} at {}...".format(c['name'], c['mac']))
             device.connect()
         manager.run()
+

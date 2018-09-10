@@ -9,8 +9,7 @@ This code was written and tested with a Raspberry Pi Zero W.
 Assuming python3 and pip3 are installed, install the following **as root**. Do not use a virtualenv!
 
 ```bash
-sudo pip3 install gatt pyyaml apscheduler qhue python-nest
-sudo apt-get install python3-dbus
+sudo pip3 install -r requirements.txt
 ```
 
 Make sure your Turn Touch is disconnected **and unpaired** from any other devices, then run:

@@ -1,0 +1,6 @@
+gatt
+pyyaml
+apscheduler
+qhue
+python-nest
+dbus-python
