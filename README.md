@@ -22,7 +22,7 @@ Put this mac address in config.yml, and update any button press options you woul
 
 Launch the listener with:
 
-```sudo python3 monitor.py```
+```sudo python3 monitor.py -p```
 
 It should connect, and once it has you should be able to press buttons on your Turn Touch and see the output of your commands.
 
